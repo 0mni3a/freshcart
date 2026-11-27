@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { AuthProvider } from "@/context/AuthContext";
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Navbar />
               {children}
               <Footer />
+              <Toaster position="bottom-right" richColors closeButton />
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>

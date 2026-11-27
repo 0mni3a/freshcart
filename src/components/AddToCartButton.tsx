@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Check, Loader2, ShoppingCart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -18,7 +19,6 @@ export default function AddToCartButton({
   const { addToCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [error, setError] = useState("");
 
   async function handleClick() {
     if (!token) {
@@ -26,13 +26,13 @@ export default function AddToCartButton({
       return;
     }
     setLoading(true);
-    setError("");
     try {
       await addToCart(productId);
+      toast.success("Added to your cart");
       setDone(true);
       setTimeout(() => setDone(false), 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,6 @@ export default function AddToCartButton({
         )}
         {loading ? "Adding..." : done ? "Added" : "Add to cart"}
       </button>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 }

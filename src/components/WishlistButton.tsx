@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Heart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -28,6 +29,9 @@ export default function WishlistButton({
     setLoading(true);
     try {
       await toggle(productId);
+      toast.success(active ? "Removed from wishlist" : "Added to wishlist");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -42,7 +46,7 @@ export default function WishlistButton({
       className={`flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur transition hover:scale-110 disabled:opacity-60 ${className}`}
     >
       <Heart
-        className={`h-[18px] w-[18px] transition ${
+        className={`h-4.5 w-4.5 transition ${
           active ? "fill-red-500 text-red-500" : "text-stone-600"
         }`}
       />
