@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { api } from "@/lip/api";
+import { api } from "@/lib/api";
 import { Brand, Category, ProductsResponse } from "@/types";
 import Hero from "@/components/Hero";
 import CategoriesStrip from "@/components/CategoriesStrip";

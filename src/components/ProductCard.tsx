@@ -18,14 +18,14 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-stone-200/70">
       {hasDiscount && (
-        <span className="absolute left-3 top-3 z-10 rounded-full bg-red-500 px-2.5 py-1 text-xs font-semibold text-white">
+        <span className="absolute left-2 top-2 z-10 rounded-full bg-red-500 px-2.5 py-1 text-xs font-semibold text-white sm:left-3 sm:top-3">
           -{discountPercent}%
         </span>
       )}
 
       <WishlistButton
         productId={product.id}
-        className="absolute right-3 top-3 z-10"
+        className="absolute right-2 top-2 z-10 sm:right-3 sm:top-3"
       />
 
       <Link href={`/products/${product.id}`} className="flex flex-1 flex-col">
@@ -39,25 +39,25 @@ export default function ProductCard({ product }: { product: Product }) {
           />
         </div>
 
-        <div className="flex flex-1 flex-col gap-1.5 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-green-700">
+        <div className="flex flex-1 flex-col gap-1.5 p-3 sm:p-4">
+          <p className="truncate text-xs font-semibold uppercase tracking-wider text-green-700">
             {product.category.name}
           </p>
 
-          <h3 className="line-clamp-2 min-h-[2.75rem] font-medium leading-snug text-stone-900">
+          <h3 className="line-clamp-2 min-h-[2.75rem] text-sm font-medium leading-snug text-stone-900 sm:text-base">
             {product.title}
           </h3>
 
-          <div className="mt-1 flex items-end justify-between">
-            <div className="flex items-baseline gap-2">
-              <span className="text-lg font-bold text-stone-900">
+          <div className="mt-1 flex flex-wrap items-end justify-between gap-x-2 gap-y-1">
+            <div className="flex flex-wrap items-baseline gap-x-2">
+              <span className="text-base font-bold text-stone-900 sm:text-lg">
                 {hasDiscount ? product.priceAfterDiscount : product.price}
                 <span className="ml-1 text-xs font-medium text-stone-500">
                   EGP
                 </span>
               </span>
               {hasDiscount && (
-                <span className="text-sm text-stone-400 line-through">
+                <span className="text-xs text-stone-400 line-through sm:text-sm">
                   {product.price}
                 </span>
               )}
@@ -71,7 +71,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
       </Link>
 
-      <div className="px-4 pb-4">
+      <div className="px-3 pb-3 sm:px-4 sm:pb-4">
         <AddToCartButton productId={product.id} />
       </div>
     </div>

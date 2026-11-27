@@ -57,6 +57,11 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // قفل قايمة الموبايل لما الصفحة تتغيّر
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   function isActive(href: string) {
     return href === "/" ? pathname === "/" : pathname.startsWith(href);
   }
@@ -75,13 +80,13 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200/70 bg-[#faf8f4]/85 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:px-6">
         {/* اللوجو */}
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex shrink-0 items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-600 text-white">
             <ShoppingBasket className="h-5 w-5" />
           </span>
-          <span className="text-xl font-bold tracking-tight text-green-900">
+          <span className="hidden text-xl font-bold tracking-tight text-green-900 min-[400px]:inline">
             FreshCart
           </span>
         </Link>
@@ -109,7 +114,7 @@ export default function Navbar() {
         )}
 
         {/* الجزء اليمين */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1">
           {isReady &&
             (token ? (
               <>
@@ -131,7 +136,8 @@ export default function Navbar() {
                   <button
                     onClick={() => setOpen((prev) => !prev)}
                     aria-expanded={open}
-                    className="flex items-center gap-2 rounded-full border border-stone-200 bg-white py-1.5 pl-2 pr-3 text-sm font-medium text-stone-700 transition hover:border-green-600 hover:text-green-700"
+                    aria-label="Account menu"
+                    className="flex items-center gap-2 rounded-full border border-stone-200 bg-white py-1.5 pl-2 pr-2 text-sm font-medium text-stone-700 transition hover:border-green-600 hover:text-green-700 sm:pr-3"
                   >
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 text-green-700">
                       <User className="h-4 w-4" />
@@ -140,7 +146,9 @@ export default function Navbar() {
                       {firstName ?? "Account"}
                     </span>
                     <ChevronDown
-                      className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`}
+                      className={`hidden h-4 w-4 transition sm:block ${
+                        open ? "rotate-180" : ""
+                      }`}
                     />
                   </button>
 
@@ -182,6 +190,7 @@ export default function Navbar() {
                 <button
                   onClick={() => setMobileOpen((prev) => !prev)}
                   aria-label="Menu"
+                  aria-expanded={mobileOpen}
                   className={`${iconButton} md:hidden`}
                 >
                   {mobileOpen ? (
@@ -195,13 +204,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/login"
-                  className="rounded-md px-4 py-2 text-sm font-medium text-stone-700 hover:text-green-700"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-stone-700 hover:text-green-700 sm:px-4"
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
-                  className="rounded-full bg-green-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
+                  className="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 sm:px-5"
                 >
                   Register
                 </Link>
@@ -212,12 +221,11 @@ export default function Navbar() {
 
       {/* قايمة الموبايل */}
       {isReady && token && mobileOpen && (
-        <nav className="border-t border-stone-200/70 bg-[#faf8f4] px-6 py-3 md:hidden">
+        <nav className="border-t border-stone-200/70 bg-[#faf8f4] px-4 py-3 md:hidden">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              onClick={() => setMobileOpen(false)}
               className={`block rounded-md px-3 py-2.5 text-sm font-medium ${
                 isActive(l.href)
                   ? "bg-green-50 text-green-700"

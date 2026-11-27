@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* درجات الأخضر: أخضر غابات هادي بدل الأخضر الفاقع الافتراضي */
 @theme {
   --color-green-50: #f1f7f3;
   --color-green-100: #dcece2;
@@ -34,6 +33,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
+  overflow-x: clip;
 }
 
 h1,

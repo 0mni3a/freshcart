@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { CheckCircle2, Loader2 } from "lucide-react";
-import { api } from "@/lip/api";
+import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import AuthLayout from "@/components/AuthLayout";
 import FormField from "@/components/FormField";

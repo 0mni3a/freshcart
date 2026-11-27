@@ -1,9 +1,8 @@
-import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { api } from "@/lip/api";
+import { api } from "@/lib/api";
 import { getAllProducts } from "@/lib/products";
 import { Brand } from "@/types";
+import PageHeader from "@/components/PageHeader";
 import ProductCard from "@/components/ProductCard";
 
 export default async function BrandDetailsPage({
@@ -25,29 +24,19 @@ export default async function BrandDetailsPage({
   const products = all.filter((p) => p.brand._id === id);
 
   return (
-    <main className="mx-auto max-w-7xl p-6">
-      <Link href="/brands" className="text-sm text-green-600 hover:underline">
-        ← All brands
-      </Link>
-
-      <div className="mb-8 mt-3 flex items-center gap-4">
-        <div className="relative h-20 w-32">
-          <Image
-            src={brand.image}
-            alt={brand.name}
-            fill
-            sizes="128px"
-            className="object-contain"
-          />
-        </div>
-        <h1 className="text-2xl font-bold">{brand.name}</h1>
-      </div>
-
-      <h2 className="mb-3 font-semibold">Products ({products.length})</h2>
+    <main className="mx-auto max-w-7xl px-6 py-10">
+      <PageHeader
+        title={brand.name}
+        subtitle={`${products.length} ${
+          products.length === 1 ? "product" : "products"
+        }`}
+        image={brand.image}
+        back={{ href: "/brands", label: "All brands" }}
+      />
 
       {products.length === 0 ? (
-        <p className="py-16 text-center text-gray-500">
-          No products for this brand.
+        <p className="rounded-2xl border border-dashed border-stone-300 py-16 text-center text-stone-500">
+          No products for this brand yet.
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">

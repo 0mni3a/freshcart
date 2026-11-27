@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Heart, Trash2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/context/WishlistContext";
 import AddToCartButton from "@/components/AddToCartButton";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import EmptyState from "@/components/EmptyState";
 
 export default function WishlistPage() {
   const router = useRouter();
@@ -16,7 +19,6 @@ export default function WishlistPage() {
   const [pending, setPending] = useState<{ id: string; title: string } | null>(
     null
   );
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (isReady && !token) router.push("/login");
@@ -26,11 +28,11 @@ export default function WishlistPage() {
     const current = pending;
     setPending(null);
     if (!current) return;
-    setError("");
     try {
       await remove(current.id);
+      toast.success("Removed from wishlist");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     }
   }
 
@@ -38,77 +40,95 @@ export default function WishlistPage() {
 
   if (items.length === 0) {
     return (
-      <main className="mx-auto max-w-3xl p-6 py-20 text-center">
-        <h1 className="mb-3 text-2xl font-bold">Your wishlist is empty</h1>
-        <p className="mb-6 text-gray-500">
-          Tap the heart on any product to save it here.
-        </p>
-        <Link
-          href="/products"
-          className="rounded bg-green-600 px-6 py-3 text-white hover:bg-green-700"
-        >
-          Browse products
-        </Link>
-      </main>
+      <EmptyState
+        icon={Heart}
+        title="Your wishlist is empty"
+        text="Tap the heart on any product to save it here."
+        href="/products"
+        cta="Browse products"
+      />
     );
   }
 
   return (
-    <main className="mx-auto max-w-7xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">My Wishlist ({items.length})</h1>
-
-      {error && (
-        <p className="mb-4 rounded bg-red-50 p-2 text-sm text-red-600">
-          {error}
+    <main className="mx-auto max-w-5xl px-6 py-10">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-stone-900">My wishlist</h1>
+        <p className="mt-1 text-sm text-stone-500">
+          {items.length} saved {items.length === 1 ? "item" : "items"}
         </p>
-      )}
+      </div>
 
       <ul className="space-y-4">
-        {items.map((product) => (
-          <li
-            key={product.id}
-            className="flex gap-6 rounded-lg border bg-white p-4"
-          >
-            <Link
-              href={`/products/${product.id}`}
-              className="relative h-32 w-32 shrink-0 overflow-hidden rounded md:h-40 md:w-40"
+        {items.map((product) => {
+          const hasDiscount =
+            !!product.priceAfterDiscount &&
+            product.priceAfterDiscount < product.price;
+
+          return (
+            <li
+              key={product.id}
+              className="flex gap-5 rounded-2xl border border-stone-200 bg-white p-4"
             >
-              <Image
-                src={product.imageCover}
-                alt={product.title}
-                fill
-                sizes="160px"
-                className="object-cover"
-              />
-            </Link>
-
-            <div className="flex flex-1 flex-col justify-between gap-3">
-              <div>
-                <h2 className="line-clamp-1 text-lg font-medium">
-                  {product.title}
-                </h2>
-                <p className="font-semibold text-green-700">
-                  {product.price} EGP
-                </p>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <AddToCartButton
-                  productId={product.id}
-                  className="w-40"
+              <Link
+                href={`/products/${product.id}`}
+                className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-stone-100 md:h-36 md:w-36"
+              >
+                <Image
+                  src={product.imageCover}
+                  alt={product.title}
+                  fill
+                  sizes="144px"
+                  className="object-cover"
                 />
-                <button
-                  onClick={() =>
-                    setPending({ id: product.id, title: product.title })
-                  }
-                  className="text-sm text-red-600 hover:underline"
-                >
-                  Remove
-                </button>
+              </Link>
+
+              <div className="flex flex-1 flex-col justify-between gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <Link
+                      href={`/products/${product.id}`}
+                      className="line-clamp-2 font-semibold text-stone-900 hover:text-green-700"
+                    >
+                      {product.title}
+                    </Link>
+                    <p className="mt-1 text-sm text-stone-500">
+                      {product.category?.name}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      setPending({ id: product.id, title: product.title })
+                    }
+                    aria-label="Remove from wishlist"
+                    className="rounded-full p-2 text-stone-400 transition hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg font-bold text-stone-900">
+                      {hasDiscount ? product.priceAfterDiscount : product.price}
+                      <span className="ml-1 text-xs font-medium text-stone-500">
+                        EGP
+                      </span>
+                    </span>
+                    {hasDiscount && (
+                      <span className="text-sm text-stone-400 line-through">
+                        {product.price}
+                      </span>
+                    )}
+                  </div>
+
+                  <AddToCartButton productId={product.id} className="w-44" />
+                </div>
               </div>
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
 
       <ConfirmDialog

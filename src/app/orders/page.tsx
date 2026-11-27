@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Banknote, CreditCard } from "lucide-react";
-import { api } from "@/lip/api";
+import { toast } from "sonner";
+import { Banknote, CreditCard, MapPin, Package } from "lucide-react";
+import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Order } from "@/types";
+import EmptyState from "@/components/EmptyState";
 
 export default function OrdersPage() {
   const router = useRouter();
   const { token, userId, isReady } = useAuth();
   const [orders, setOrders] = useState<Order[] | null>(null);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (isReady && !token) router.push("/login");
@@ -35,61 +35,76 @@ export default function OrdersPage() {
           )
         );
       })
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : "Something went wrong")
-      );
+      .catch((err) => {
+        setOrders([]);
+        toast.error(
+          err instanceof Error ? err.message : "Could not load your orders"
+        );
+      });
   }, [token, userId]);
 
   if (!isReady || !token) return null;
 
-  if (error) {
+  if (orders === null) {
     return (
-      <main className="mx-auto max-w-3xl p-6">
-        <p className="rounded bg-red-50 p-3 text-red-600">{error}</p>
+      <main className="mx-auto max-w-5xl px-6 py-10" aria-busy="true">
+        <div className="mb-8 h-9 w-48 animate-pulse rounded-lg bg-stone-200" />
+        <div className="space-y-6">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="h-56 animate-pulse rounded-2xl border border-stone-200 bg-stone-100"
+            />
+          ))}
+        </div>
       </main>
     );
-  }
-
-  if (orders === null) {
-    return <main className="p-6 text-center text-gray-500">Loading...</main>;
   }
 
   if (orders.length === 0) {
     return (
-      <main className="mx-auto max-w-3xl p-6 py-20 text-center">
-        <h1 className="mb-3 text-2xl font-bold">No orders yet</h1>
-        <p className="mb-6 text-gray-500">Your orders will show up here.</p>
-        <Link
-          href="/products"
-          className="rounded bg-green-600 px-6 py-3 text-white hover:bg-green-700"
-        >
-          Start shopping
-        </Link>
-      </main>
+      <EmptyState
+        icon={Package}
+        title="No orders yet"
+        text="When you place an order, it will show up here."
+        href="/products"
+        cta="Start shopping"
+      />
     );
   }
 
   return (
-    <main className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">My Orders ({orders.length})</h1>
+    <main className="mx-auto max-w-5xl px-6 py-10">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-stone-900">My orders</h1>
+        <p className="mt-1 text-sm text-stone-500">
+          {orders.length} {orders.length === 1 ? "order" : "orders"}
+        </p>
+      </div>
 
       <ul className="space-y-6">
         {orders.map((order) => (
-          <li key={order._id} className="rounded-lg border bg-white p-4">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b pb-3">
+          <li
+            key={order._id}
+            className="overflow-hidden rounded-2xl border border-stone-200 bg-white"
+          >
+            {/* رأس الطلب */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 bg-stone-50 px-5 py-4">
               <div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm font-semibold text-stone-900">
+                  Order #{order._id.slice(-8)}
+                </p>
+                <p className="text-xs text-stone-500">
                   {new Date(order.createdAt).toLocaleDateString("en-GB", {
                     day: "numeric",
                     month: "short",
                     year: "numeric",
                   })}
                 </p>
-                <p className="text-xs text-gray-400">#{order._id.slice(-8)}</p>
               </div>
 
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1">
+              <div className="flex flex-wrap gap-2 text-xs font-medium">
+                <span className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-stone-600 ring-1 ring-stone-200">
                   {order.paymentMethodType === "cash" ? (
                     <>
                       <Banknote className="h-3.5 w-3.5" /> Cash
@@ -103,8 +118,8 @@ export default function OrdersPage() {
                 <span
                   className={`rounded-full px-3 py-1 ${
                     order.isPaid
-                      ? "bg-green-100 text-green-700"
-                      : "bg-yellow-100 text-yellow-700"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-amber-100 text-amber-800"
                   }`}
                 >
                   {order.isPaid ? "Paid" : "Not paid"}
@@ -112,8 +127,8 @@ export default function OrdersPage() {
                 <span
                   className={`rounded-full px-3 py-1 ${
                     order.isDelivered
-                      ? "bg-green-100 text-green-700"
-                      : "bg-blue-100 text-blue-700"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-sky-100 text-sky-800"
                   }`}
                 >
                   {order.isDelivered ? "Delivered" : "In progress"}
@@ -121,10 +136,11 @@ export default function OrdersPage() {
               </div>
             </div>
 
-            <ul className="space-y-3">
+            {/* المنتجات */}
+            <ul className="divide-y divide-stone-100 px-5">
               {order.cartItems.map((item) => (
-                <li key={item._id} className="flex items-center gap-4">
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded">
+                <li key={item._id} className="flex items-center gap-4 py-4">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-stone-100">
                     <Image
                       src={item.product.imageCover}
                       alt={item.product.title}
@@ -133,25 +149,36 @@ export default function OrdersPage() {
                       className="object-cover"
                     />
                   </div>
-                  <div className="flex-1">
-                    <p className="line-clamp-1 font-medium">
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-1 font-medium text-stone-900">
                       {item.product.title}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-stone-500">
                       {item.count} × {item.price} EGP
                     </p>
                   </div>
+                  <span className="text-sm font-semibold text-stone-900">
+                    {item.count * item.price} EGP
+                  </span>
                 </li>
               ))}
             </ul>
 
-            <div className="mt-4 flex items-center justify-between border-t pt-3">
-              <span className="text-sm text-gray-500">
-                {order.shippingAddress &&
-                  `${order.shippingAddress.city} - ${order.shippingAddress.details}`}
-              </span>
-              <span className="font-bold text-green-700">
-                {order.totalOrderPrice} EGP
+            {/* التذييل */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 px-5 py-4">
+              {order.shippingAddress ? (
+                <span className="flex items-center gap-2 text-sm text-stone-500">
+                  <MapPin className="h-4 w-4 shrink-0" />
+                  {order.shippingAddress.city} - {order.shippingAddress.details}
+                </span>
+              ) : (
+                <span />
+              )}
+              <span className="text-lg font-bold text-green-700">
+                {order.totalOrderPrice}
+                <span className="ml-1 text-xs font-medium text-stone-500">
+                  EGP
+                </span>
               </span>
             </div>
           </li>

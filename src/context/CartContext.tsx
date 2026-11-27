@@ -8,7 +8,7 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { api } from "@/lip/api";
+import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Cart } from "@/types";
 

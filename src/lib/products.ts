@@ -1,4 +1,4 @@
-import { api } from "@/lip/api";
+import { api } from "@/lib/api";
 import { Product, ProductsResponse } from "@/types";
 
 export async function getAllProducts(): Promise<Product[]> {

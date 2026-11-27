@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { api } from "@/lip/api";
-import { Product, ProductsResponse } from "@/types";
+import { ChevronLeft, ChevronRight, SearchX } from "lucide-react";
+import { getAllProducts } from "@/lib/products";
+import PageHeader from "@/components/PageHeader";
 import ProductCard from "@/components/ProductCard";
 import ProductFilters from "@/components/ProductFilters";
 
@@ -13,18 +14,6 @@ type SearchParams = {
   min?: string;
   max?: string;
 };
-
-async function getAllProducts(): Promise<Product[]> {
-  const first = await api<ProductsResponse>("/products?limit=100&page=1");
-  let all = first.data;
-  const pages = first.metadata?.numberOfPages ?? 1;
-
-  for (let p = 2; p <= pages; p++) {
-    const res = await api<ProductsResponse>(`/products?limit=100&page=${p}`);
-    all = all.concat(res.data);
-  }
-  return all;
-}
 
 export default async function ProductsPage({
   searchParams,
@@ -76,9 +65,15 @@ export default async function ProductsPage({
     return `/products?${p.toString()}`;
   }
 
+  const pageClass =
+    "flex h-10 min-w-10 items-center justify-center rounded-full border px-3 text-sm font-medium transition";
+
   return (
-    <main className="mx-auto max-w-7xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">Products</h1>
+    <main className="mx-auto max-w-7xl px-6 py-10">
+      <PageHeader
+        title="Products"
+        subtitle={`${list.length} ${list.length === 1 ? "product" : "products"}`}
+      />
 
       <ProductFilters
         initial={{
@@ -90,7 +85,17 @@ export default async function ProductsPage({
       />
 
       {visible.length === 0 ? (
-        <p className="py-16 text-center text-gray-500">No products found.</p>
+        <div className="py-20 text-center">
+          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-stone-100 text-stone-400">
+            <SearchX className="h-7 w-7" />
+          </span>
+          <h2 className="mt-5 text-lg font-semibold text-stone-900">
+            No products found
+          </h2>
+          <p className="mt-1 text-sm text-stone-500">
+            Try a different keyword or clear your filters.
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
           {visible.map((product) => (
@@ -100,21 +105,59 @@ export default async function ProductsPage({
       )}
 
       {numberOfPages > 1 && (
-        <div className="mt-8 flex flex-wrap justify-center gap-2">
+        <nav
+          aria-label="Pagination"
+          className="mt-12 flex flex-wrap items-center justify-center gap-2"
+        >
+          {current > 1 ? (
+            <Link
+              href={pageHref(current - 1)}
+              aria-label="Previous page"
+              className={`${pageClass} border-stone-200 bg-white hover:border-green-600`}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Link>
+          ) : (
+            <span
+              className={`${pageClass} border-stone-100 text-stone-300`}
+              aria-hidden
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </span>
+          )}
+
           {Array.from({ length: numberOfPages }, (_, i) => i + 1).map((n) => (
             <Link
               key={n}
               href={pageHref(n)}
-              className={`rounded border px-3 py-1 ${
+              aria-current={n === current ? "page" : undefined}
+              className={`${pageClass} ${
                 n === current
-                  ? "bg-green-600 text-white"
-                  : "hover:border-green-600"
+                  ? "border-green-600 bg-green-600 text-white"
+                  : "border-stone-200 bg-white hover:border-green-600"
               }`}
             >
               {n}
             </Link>
           ))}
-        </div>
+
+          {current < numberOfPages ? (
+            <Link
+              href={pageHref(current + 1)}
+              aria-label="Next page"
+              className={`${pageClass} border-stone-200 bg-white hover:border-green-600`}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          ) : (
+            <span
+              className={`${pageClass} border-stone-100 text-stone-300`}
+              aria-hidden
+            >
+              <ChevronRight className="h-4 w-4" />
+            </span>
+          )}
+        </nav>
       )}
     </main>
   );

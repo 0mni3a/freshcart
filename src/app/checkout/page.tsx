@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Banknote, CreditCard } from "lucide-react";
-import { api } from "@/lip/api";
+import { toast } from "sonner";
+import { Banknote, CreditCard, Loader2, ShoppingCart } from "lucide-react";
+import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import EmptyState from "@/components/EmptyState";
+import FormField from "@/components/FormField";
 
 type Method = "cash" | "online";
 
@@ -21,15 +25,19 @@ const validationSchema = Yup.object({
   city: Yup.string().required("City is required"),
 });
 
-const fields = [
-  { name: "details", label: "Address details", type: "text" },
-  { name: "phone", label: "Phone", type: "tel" },
-  { name: "city", label: "City", type: "text" },
-] as const;
-
 const methods = [
-  { value: "cash", title: "Cash on delivery", icon: Banknote },
-  { value: "online", title: "Pay online", icon: CreditCard },
+  {
+    value: "cash",
+    title: "Cash on delivery",
+    text: "Pay when your order arrives",
+    icon: Banknote,
+  },
+  {
+    value: "online",
+    title: "Pay online",
+    text: "Secure payment by card",
+    icon: CreditCard,
+  },
 ] as const;
 
 export default function CheckoutPage() {
@@ -37,7 +45,6 @@ export default function CheckoutPage() {
   const { token, isReady } = useAuth();
   const { cart, refreshCart } = useCart();
   const [method, setMethod] = useState<Method>("cash");
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (isReady && !token) router.push("/login");
@@ -48,7 +55,6 @@ export default function CheckoutPage() {
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
       if (!cart) return;
-      setError("");
       const body = JSON.stringify({ shippingAddress: values });
       const headers = { token: token ?? "" };
 
@@ -56,6 +62,7 @@ export default function CheckoutPage() {
         if (method === "cash") {
           await api(`/orders/${cart._id}`, { method: "POST", headers, body });
           await refreshCart();
+          toast.success("Your order was placed");
           router.push("/orders");
         } else {
           const res = await api<{ session: { url: string } }>(
@@ -65,7 +72,9 @@ export default function CheckoutPage() {
           window.location.href = res.session.url;
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        toast.error(
+          err instanceof Error ? err.message : "Something went wrong"
+        );
       } finally {
         setSubmitting(false);
       }
@@ -76,103 +85,160 @@ export default function CheckoutPage() {
 
   if (!cart || cart.products.length === 0) {
     return (
-      <main className="mx-auto max-w-3xl p-6 py-20 text-center">
-        <h1 className="mb-3 text-2xl font-bold">Your cart is empty</h1>
-        <p className="text-gray-500">Add products before checking out.</p>
-      </main>
+      <EmptyState
+        icon={ShoppingCart}
+        title="Your cart is empty"
+        text="Add some products before checking out."
+        href="/products"
+        cta="Browse products"
+      />
     );
   }
 
+  const field = (name: "details" | "phone" | "city") => ({
+    id: name,
+    name,
+    value: formik.values[name],
+    onChange: formik.handleChange,
+    onBlur: formik.handleBlur,
+    error: formik.touched[name] && formik.errors[name],
+  });
+
   return (
-    <main className="mx-auto grid max-w-6xl gap-8 p-6 md:grid-cols-3">
+    <main className="mx-auto max-w-6xl px-6 py-10">
+      <h1 className="mb-8 text-3xl font-bold text-stone-900">Checkout</h1>
+
       <form
         onSubmit={formik.handleSubmit}
-        className="space-y-4 md:col-span-2"
+        className="grid gap-8 lg:grid-cols-3"
       >
-        <h1 className="text-2xl font-bold">Checkout</h1>
-
-        <h2 className="font-semibold">Shipping address</h2>
-        {fields.map((f) => (
-          <div key={f.name}>
-            <label htmlFor={f.name} className="mb-1 block text-sm font-medium">
-              {f.label}
-            </label>
-            <input
-              id={f.name}
-              name={f.name}
-              type={f.type}
-              value={formik.values[f.name]}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              className="w-full rounded border p-2 focus:border-green-600 focus:outline-none"
-            />
-            {formik.touched[f.name] && formik.errors[f.name] && (
-              <p className="mt-1 text-sm text-red-600">
-                {formik.errors[f.name]}
-              </p>
-            )}
-          </div>
-        ))}
-
-        <h2 className="pt-2 font-semibold">Payment method</h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {methods.map(({ value, title, icon: Icon }) => (
-            <label
-              key={value}
-              className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 ${
-                method === value
-                  ? "border-green-600 bg-green-50"
-                  : "hover:border-green-400"
-              }`}
-            >
-              <input
-                type="radio"
-                name="method"
-                value={value}
-                checked={method === value}
-                onChange={() => setMethod(value)}
-                className="accent-green-600"
+        <div className="space-y-8 lg:col-span-2">
+          {/* العنوان */}
+          <section className="rounded-2xl border border-stone-200 bg-white p-6">
+            <h2 className="mb-5 text-lg font-bold text-stone-900">
+              Shipping address
+            </h2>
+            <div className="space-y-5">
+              <FormField
+                label="Address details"
+                autoComplete="street-address"
+                {...field("details")}
               />
-              <Icon className="h-5 w-5 text-green-700" />
-              <span className="font-medium">{title}</span>
-            </label>
-          ))}
+              <div className="grid gap-5 sm:grid-cols-2">
+                <FormField
+                  label="Phone"
+                  type="tel"
+                  autoComplete="tel"
+                  {...field("phone")}
+                />
+                <FormField
+                  label="City"
+                  autoComplete="address-level2"
+                  {...field("city")}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* طريقة الدفع */}
+          <section className="rounded-2xl border border-stone-200 bg-white p-6">
+            <h2 className="mb-5 text-lg font-bold text-stone-900">
+              Payment method
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {methods.map(({ value, title, text, icon: Icon }) => (
+                <label
+                  key={value}
+                  className={`flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition ${
+                    method === value
+                      ? "border-green-600 bg-green-50 ring-1 ring-green-600"
+                      : "border-stone-200 hover:border-green-400"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="method"
+                    value={value}
+                    checked={method === value}
+                    onChange={() => setMethod(value)}
+                    className="sr-only"
+                  />
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                      method === value
+                        ? "bg-green-600 text-white"
+                        : "bg-stone-100 text-stone-600"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span>
+                    <span className="block font-semibold text-stone-900">
+                      {title}
+                    </span>
+                    <span className="mt-0.5 block text-sm text-stone-500">
+                      {text}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </section>
         </div>
 
-        {error && (
-          <p className="rounded bg-red-50 p-2 text-sm text-red-600">{error}</p>
-        )}
+        {/* ملخص الطلب */}
+        <aside className="h-fit rounded-2xl border border-stone-200 bg-white p-6 lg:sticky lg:top-24">
+          <h2 className="text-lg font-bold text-stone-900">Order summary</h2>
 
-        <button
-          type="submit"
-          disabled={formik.isSubmitting}
-          className="w-full rounded bg-green-600 p-3 font-semibold text-white hover:bg-green-700 disabled:opacity-50"
-        >
-          {formik.isSubmitting
-            ? "Processing..."
-            : method === "cash"
-            ? "Place order"
-            : "Continue to payment"}
-        </button>
-      </form>
+          <ul className="mt-5 space-y-4">
+            {cart.products.map((item) => (
+              <li key={item._id} className="flex items-center gap-3">
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-stone-100">
+                  <Image
+                    src={item.product.imageCover}
+                    alt={item.product.title}
+                    fill
+                    sizes="56px"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-1 text-sm font-medium text-stone-900">
+                    {item.product.title}
+                  </p>
+                  <p className="text-xs text-stone-500">Qty {item.count}</p>
+                </div>
+                <span className="text-sm font-semibold text-stone-900">
+                  {item.price * item.count}
+                </span>
+              </li>
+            ))}
+          </ul>
 
-      <aside className="h-fit rounded-lg border bg-white p-4">
-        <h2 className="mb-3 font-semibold">Order summary</h2>
-        <ul className="space-y-2 text-sm">
-          {cart.products.map((item) => (
-            <li key={item._id} className="flex justify-between gap-2">
-              <span className="line-clamp-1">
-                {item.product.title} × {item.count}
+          <div className="mt-5 flex items-center justify-between border-t border-stone-200 pt-5">
+            <span className="font-semibold text-stone-900">Total</span>
+            <span className="text-2xl font-bold text-green-700">
+              {cart.totalCartPrice}
+              <span className="ml-1 text-sm font-medium text-stone-500">
+                EGP
               </span>
-              <span>{item.price * item.count} EGP</span>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-4 flex justify-between border-t pt-3 text-lg font-bold">
-          <span>Total</span>
-          <span className="text-green-700">{cart.totalCartPrice} EGP</span>
-        </div>
-      </aside>
+            </span>
+          </div>
+
+          <button
+            type="submit"
+            disabled={formik.isSubmitting}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
+          >
+            {formik.isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            {formik.isSubmitting
+              ? "Processing..."
+              : method === "cash"
+              ? "Place order"
+              : "Continue to payment"}
+          </button>
+        </aside>
+      </form>
     </main>
   );
 }
