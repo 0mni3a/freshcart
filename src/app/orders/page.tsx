@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Banknote, CreditCard } from "lucide-react";
 import { api } from "@/lip/api";
 import { useAuth } from "@/context/AuthContext";
 import { Order } from "@/types";
@@ -88,8 +89,16 @@ export default function OrdersPage() {
               </div>
 
               <div className="flex flex-wrap gap-2 text-xs">
-                <span className="rounded-full bg-gray-100 px-3 py-1">
-                  {order.paymentMethodType === "cash" ? "💵 Cash" : "💳 Card"}
+                <span className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1">
+                  {order.paymentMethodType === "cash" ? (
+                    <>
+                      <Banknote className="h-3.5 w-3.5" /> Cash
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-3.5 w-3.5" /> Card
+                    </>
+                  )}
                 </span>
                 <span
                   className={`rounded-full px-3 py-1 ${

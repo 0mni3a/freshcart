@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Heart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/context/WishlistContext";
 
@@ -37,9 +38,14 @@ export default function WishlistButton({
       onClick={handleClick}
       disabled={loading}
       aria-label={active ? "Remove from wishlist" : "Add to wishlist"}
-      className={`flex h-10 w-10 items-center justify-center rounded-full border bg-white text-xl shadow-sm hover:border-red-400 disabled:opacity-50 ${className}`}
+      aria-pressed={active}
+      className={`flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur transition hover:scale-110 disabled:opacity-60 ${className}`}
     >
-      {active ? "❤️" : "🤍"}
+      <Heart
+        className={`h-[18px] w-[18px] transition ${
+          active ? "fill-red-500 text-red-500" : "text-stone-600"
+        }`}
+      />
     </button>
   );
 }

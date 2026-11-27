@@ -1,31 +1,58 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* درجات الأخضر: أخضر غابات هادي بدل الأخضر الفاقع الافتراضي */
+@theme {
+  --color-green-50: #f1f7f3;
+  --color-green-100: #dcece2;
+  --color-green-200: #b9d9c6;
+  --color-green-300: #8bbfa2;
+  --color-green-400: #55a07a;
+  --color-green-500: #2f8359;
+  --color-green-600: #1f6b47;
+  --color-green-700: #185639;
+  --color-green-800: #144530;
+  --color-green-900: #0f3425;
+  --color-green-950: #082016;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-jakarta), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #faf8f4;
+  --foreground: #1c1917;
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
 
+::selection {
+  background: var(--color-green-200);
+  color: var(--color-green-950);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-green-500);
+  outline-offset: 2px;
+}
+
+/* شريط الأقسام والبراندات المتحرك */
 @keyframes marquee {
   from {
     transform: translateX(0);

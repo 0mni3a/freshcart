@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Star } from "lucide-react";
 import { api } from "@/lip/api";
 import { Product } from "@/types";
 import ProductGallery from "@/components/ProductGallery";
@@ -23,7 +24,7 @@ export default async function ProductDetailsPage({
   }
 
   const hasDiscount =
-    product.priceAfterDiscount && product.priceAfterDiscount < product.price;
+    !!product.priceAfterDiscount && product.priceAfterDiscount < product.price;
 
   return (
     <main className="mx-auto grid max-w-7xl gap-8 p-6 md:grid-cols-2">
@@ -68,15 +69,20 @@ export default async function ProductDetailsPage({
           )}
         </div>
 
-        <p className="text-sm text-gray-500">
-          ⭐ {product.ratingsAverage} ({product.ratingsQuantity} reviews) •{" "}
-          {product.quantity} in stock
+        <p className="flex items-center gap-1.5 text-sm text-stone-500">
+          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+          <span className="font-medium text-stone-700">
+            {product.ratingsAverage}
+          </span>
+          ({product.ratingsQuantity} reviews) • {product.quantity} in stock
         </p>
+
         <div className="flex max-w-xs items-center gap-3">
           <AddToCartButton productId={product.id} className="flex-1" />
           <WishlistButton productId={product.id} className="shrink-0" />
         </div>
       </div>
+
       <div className="md:col-span-2">
         <ProductReviews productId={product.id} />
       </div>

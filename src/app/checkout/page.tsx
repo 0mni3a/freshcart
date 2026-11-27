@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { Banknote, CreditCard } from "lucide-react";
 import { api } from "@/lip/api";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -11,7 +12,9 @@ import { useCart } from "@/context/CartContext";
 type Method = "cash" | "online";
 
 const validationSchema = Yup.object({
-  details: Yup.string().min(5, "Enter your full address").required("Address is required"),
+  details: Yup.string()
+    .min(5, "Enter your full address")
+    .required("Address is required"),
   phone: Yup.string()
     .matches(/^01[0125][0-9]{8}$/, "Enter a valid Egyptian phone number")
     .required("Phone is required"),
@@ -22,6 +25,11 @@ const fields = [
   { name: "details", label: "Address details", type: "text" },
   { name: "phone", label: "Phone", type: "tel" },
   { name: "city", label: "City", type: "text" },
+] as const;
+
+const methods = [
+  { value: "cash", title: "Cash on delivery", icon: Banknote },
+  { value: "online", title: "Pay online", icon: CreditCard },
 ] as const;
 
 export default function CheckoutPage() {
@@ -108,16 +116,11 @@ export default function CheckoutPage() {
 
         <h2 className="pt-2 font-semibold">Payment method</h2>
         <div className="grid gap-3 sm:grid-cols-2">
-          {(
-            [
-              { value: "cash", title: "Cash on delivery", icon: "💵" },
-              { value: "online", title: "Pay online", icon: "💳" },
-            ] as const
-          ).map((m) => (
+          {methods.map(({ value, title, icon: Icon }) => (
             <label
-              key={m.value}
+              key={value}
               className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 ${
-                method === m.value
+                method === value
                   ? "border-green-600 bg-green-50"
                   : "hover:border-green-400"
               }`}
@@ -125,13 +128,13 @@ export default function CheckoutPage() {
               <input
                 type="radio"
                 name="method"
-                value={m.value}
-                checked={method === m.value}
-                onChange={() => setMethod(m.value)}
+                value={value}
+                checked={method === value}
+                onChange={() => setMethod(value)}
                 className="accent-green-600"
               />
-              <span className="text-xl">{m.icon}</span>
-              <span className="font-medium">{m.title}</span>
+              <Icon className="h-5 w-5 text-green-700" />
+              <span className="font-medium">{title}</span>
             </label>
           ))}
         </div>
