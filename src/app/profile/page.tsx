@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { api } from "@/lip/api";
 import { useAuth } from "@/context/AuthContext";
+import AuthLayout from "@/components/AuthLayout";
+import FormField from "@/components/FormField";
 
 const validationSchema = Yup.object({
   name: Yup.string()
@@ -20,9 +23,9 @@ const validationSchema = Yup.object({
 });
 
 const fields = [
-  { name: "name", label: "Name", type: "text" },
-  { name: "email", label: "Email", type: "email" },
-  { name: "phone", label: "Phone", type: "tel" },
+  { name: "name", label: "Name", type: "text", autoComplete: "name" },
+  { name: "email", label: "New email (optional)", type: "email", autoComplete: "email" },
+  { name: "phone", label: "Phone (optional)", type: "tel", autoComplete: "tel" },
 ] as const;
 
 export default function ProfilePage() {
@@ -64,37 +67,34 @@ export default function ProfilePage() {
   if (!isReady || !token) return null;
 
   return (
-    <main className="mx-auto max-w-md p-8">
-      <h1 className="mb-6 text-2xl font-bold">My Profile</h1>
-
-      <form onSubmit={formik.handleSubmit} className="space-y-4">
+    <AuthLayout
+      title="My profile"
+      subtitle="Update your personal information"
+    >
+      <form onSubmit={formik.handleSubmit} className="space-y-5">
         {fields.map((f) => (
-          <div key={f.name}>
-            <label htmlFor={f.name} className="mb-1 block text-sm font-medium">
-              {f.label}
-            </label>
-            <input
-              id={f.name}
-              name={f.name}
-              type={f.type}
-              value={formik.values[f.name]}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              className="w-full rounded border p-2 focus:border-green-600 focus:outline-none"
-            />
-            {formik.touched[f.name] && formik.errors[f.name] && (
-              <p className="mt-1 text-sm text-red-600">
-                {formik.errors[f.name]}
-              </p>
-            )}
-          </div>
+          <FormField
+            key={f.name}
+            id={f.name}
+            name={f.name}
+            label={f.label}
+            type={f.type}
+            autoComplete={f.autoComplete}
+            value={formik.values[f.name]}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched[f.name] && formik.errors[f.name]}
+          />
         ))}
 
         {error && (
-          <p className="rounded bg-red-50 p-2 text-sm text-red-600">{error}</p>
+          <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </p>
         )}
         {success && (
-          <p className="rounded bg-green-50 p-2 text-sm text-green-700">
+          <p className="flex items-center gap-2 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
+            <CheckCircle2 className="h-4 w-4" />
             {success}
           </p>
         )}
@@ -102,11 +102,12 @@ export default function ProfilePage() {
         <button
           type="submit"
           disabled={formik.isSubmitting}
-          className="w-full rounded bg-green-600 p-2 text-white hover:bg-green-700 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
         >
+          {formik.isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
           {formik.isSubmitting ? "Saving..." : "Save changes"}
         </button>
       </form>
-    </main>
+    </AuthLayout>
   );
 }

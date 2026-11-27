@@ -5,8 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { Loader2 } from "lucide-react";
 import { api } from "@/lip/api";
 import { useAuth } from "@/context/AuthContext";
+import AuthLayout from "@/components/AuthLayout";
+import FormField from "@/components/FormField";
 
 type LoginResponse = {
   message: string;
@@ -45,67 +48,70 @@ export default function LoginPage() {
   });
 
   return (
-    <main className="mx-auto max-w-md p-8">
-      <h1 className="mb-6 text-2xl font-bold">Login</h1>
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Login to continue shopping"
+      footer={
+        <>
+          New to FreshCart?{" "}
+          <Link
+            href="/register"
+            className="font-semibold text-green-700 hover:underline"
+          >
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={formik.handleSubmit} className="space-y-5">
+        <FormField
+          id="email"
+          name="email"
+          label="Email"
+          type="email"
+          autoComplete="email"
+          value={formik.values.email}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.email && formik.errors.email}
+        />
 
-      <form onSubmit={formik.handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={formik.values.email}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            className="w-full rounded border p-2 focus:border-green-600 focus:outline-none"
-          />
-          {formik.touched.email && formik.errors.email && (
-            <p className="mt-1 text-sm text-red-600">{formik.errors.email}</p>
-          )}
-        </div>
+        <FormField
+          id="password"
+          name="password"
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          value={formik.values.password}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.password && formik.errors.password}
+        />
 
-        <div>
-          <label htmlFor="password" className="mb-1 block text-sm font-medium">
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            value={formik.values.password}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            className="w-full rounded border p-2 focus:border-green-600 focus:outline-none"
-          />
-          {formik.touched.password && formik.errors.password && (
-            <p className="mt-1 text-sm text-red-600">
-              {formik.errors.password}
-            </p>
-          )}
+        <div className="text-right">
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-green-700 hover:underline"
+          >
+            Forgot password?
+          </Link>
         </div>
 
         {error && (
-          <p className="rounded bg-red-50 p-2 text-sm text-red-600">{error}</p>
+          <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </p>
         )}
 
         <button
           type="submit"
           disabled={formik.isSubmitting}
-          className="w-full rounded bg-green-600 p-2 text-white hover:bg-green-700 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
         >
+          {formik.isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
           {formik.isSubmitting ? "Logging in..." : "Login"}
         </button>
-
-        <Link
-          href="/forgot-password"
-          className="block text-center text-sm text-green-600 hover:underline"
-        >
-          Forgot your password?
-        </Link>
       </form>
-    </main>
+    </AuthLayout>
   );
 }

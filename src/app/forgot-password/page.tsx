@@ -1,16 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { api } from "@/lip/api";
 import { useAuth } from "@/context/AuthContext";
+import AuthLayout from "@/components/AuthLayout";
+import FormField from "@/components/FormField";
 
 type Step = "email" | "code" | "reset";
 
-const inputClass =
-  "w-full rounded border p-2 focus:border-green-600 focus:outline-none";
 const buttonClass =
-  "w-full rounded bg-green-600 p-2 text-white hover:bg-green-700 disabled:opacity-50";
+  "flex w-full items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-60";
+
+const steps: { key: Step; label: string }[] = [
+  { key: "email", label: "Email" },
+  { key: "code", label: "Code" },
+  { key: "reset", label: "Password" },
+];
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -23,6 +31,8 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const currentIndex = steps.findIndex((s) => s.key === step);
 
   async function run(action: () => Promise<void>) {
     setError("");
@@ -76,77 +86,121 @@ export default function ForgotPasswordPage() {
     });
   }
 
+  const submitLabel = (idle: string, busy: string) => (
+    <>
+      {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+      {loading ? busy : idle}
+    </>
+  );
+
   return (
-    <main className="mx-auto max-w-md p-8">
-      <h1 className="mb-6 text-2xl font-bold">Forgot Password</h1>
+    <AuthLayout
+      title="Forgot your password?"
+      subtitle="No problem, we will help you get back in"
+      footer={
+        <>
+          Remembered it?{" "}
+          <Link
+            href="/login"
+            className="font-semibold text-green-700 hover:underline"
+          >
+            Back to login
+          </Link>
+        </>
+      }
+    >
+      {/* مؤشر الخطوات */}
+      <ol className="mb-6 flex items-center gap-2 text-xs font-medium">
+        {steps.map((s, i) => (
+          <li key={s.key} className="flex flex-1 items-center gap-2">
+            <span
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
+                i < currentIndex
+                  ? "bg-green-600 text-white"
+                  : i === currentIndex
+                  ? "bg-green-100 text-green-800 ring-2 ring-green-600"
+                  : "bg-stone-100 text-stone-400"
+              }`}
+            >
+              {i < currentIndex ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
+            </span>
+            <span
+              className={
+                i <= currentIndex ? "text-stone-800" : "text-stone-400"
+              }
+            >
+              {s.label}
+            </span>
+            {i < steps.length - 1 && (
+              <span
+                className={`h-px flex-1 ${
+                  i < currentIndex ? "bg-green-600" : "bg-stone-200"
+                }`}
+              />
+            )}
+          </li>
+        ))}
+      </ol>
 
       {message && (
-        <p className="mb-4 rounded bg-green-50 p-2 text-sm text-green-700">
+        <p className="mb-4 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
           {message}
         </p>
       )}
       {error && (
-        <p className="mb-4 rounded bg-red-50 p-2 text-sm text-red-600">
+        <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
           {error}
         </p>
       )}
 
       {step === "email" && (
-        <form onSubmit={sendEmail} className="space-y-4">
-          <label htmlFor="email" className="block text-sm font-medium">
-            Enter your email
-          </label>
-          <input
+        <form onSubmit={sendEmail} className="space-y-5">
+          <FormField
             id="email"
+            name="email"
+            label="Email"
             type="email"
-            required
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={inputClass}
           />
           <button type="submit" disabled={loading} className={buttonClass}>
-            {loading ? "Sending..." : "Send code"}
+            {submitLabel("Send code", "Sending...")}
           </button>
         </form>
       )}
 
       {step === "code" && (
-        <form onSubmit={verifyCode} className="space-y-4">
-          <label htmlFor="code" className="block text-sm font-medium">
-            Enter the code sent to {email}
-          </label>
-          <input
+        <form onSubmit={verifyCode} className="space-y-5">
+          <FormField
             id="code"
-            type="text"
-            required
+            name="code"
+            label={`Enter the code sent to ${email}`}
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className={inputClass}
           />
           <button type="submit" disabled={loading} className={buttonClass}>
-            {loading ? "Verifying..." : "Verify code"}
+            {submitLabel("Verify code", "Verifying...")}
           </button>
         </form>
       )}
 
       {step === "reset" && (
-        <form onSubmit={resetPassword} className="space-y-4">
-          <label htmlFor="newPassword" className="block text-sm font-medium">
-            New password
-          </label>
-          <input
+        <form onSubmit={resetPassword} className="space-y-5">
+          <FormField
             id="newPassword"
+            name="newPassword"
+            label="New password"
             type="password"
-            required
+            autoComplete="new-password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className={inputClass}
           />
           <button type="submit" disabled={loading} className={buttonClass}>
-            {loading ? "Saving..." : "Reset password"}
+            {submitLabel("Reset password", "Saving...")}
           </button>
         </form>
       )}
-    </main>
+    </AuthLayout>
   );
 }
